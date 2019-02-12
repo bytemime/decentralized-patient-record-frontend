@@ -13,7 +13,8 @@ class App extends Component {
     sendingTransaction: false,
     loading: false,
     err: false,
-    successful: false
+    successful: false,
+    IPFS_HASH: null
   };
   async componentDidMount() {
     let accounts = await web3.eth.getAccounts();
@@ -73,6 +74,12 @@ class App extends Component {
         console.log(err);
       });
   };
+  handleGetHash = async () => {
+    const accounts = await web3.eth.getAccounts();
+    let resp = await filestore.methods.getHash().call({ from: accounts[0] });
+    this.setState({ IPFS_HASH: resp });
+    // console.log("file hash", resp);
+  };
   render() {
     return (
       <div>
@@ -85,12 +92,29 @@ class App extends Component {
             <Callout intent="success">Operation completed successfully</Callout>
           )}
           <form>
+            <h1>Upload file to ipfs</h1>
             <input type="file" name="file upload" onChange={this.handleFiles} />
             <Button text="Submit" onClick={this.handleSubmit} />
             {this.state.uploading && <p>uploading...</p>}
             {this.state.sendingTransaction && <p>sending transaction...</p>}
             {this.state.loading && <ProgressBar />}
           </form>
+          <h1>get IPFS hash of the uploaded file</h1>
+          <button onClick={this.handleGetHash}>get ipfs file hash</button>
+          <h2>{this.state.IPFS_HASH}</h2>
+          {this.state.IPFS_HASH && (
+            <div>
+              <h4 style={{ color: "green" }}>your file is available at</h4>
+              <div>
+                <a
+                  href={`https://gateway.ipfs.io/ipfs/${this.state.IPFS_HASH}`}
+                  target="_blank"
+                >
+                  download file
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
